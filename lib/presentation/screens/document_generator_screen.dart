@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/pdf_generator.dart';
 
@@ -38,9 +39,9 @@ class _DocumentGeneratorScreenState extends State<DocumentGeneratorScreen> {
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text('Rédiger un document', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-            Text('Génération officielle automatique', style: TextStyle(fontSize: 10, color: AppColors.muted)),
+          children: [
+            Text(AppLocalizations.of(context)!.writeDocument, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+            Text(AppLocalizations.of(context)!.autoGenOfficial, style: const TextStyle(fontSize: 10, color: AppColors.muted)),
           ],
         ),
         backgroundColor: Colors.white,
@@ -76,7 +77,7 @@ class _DocumentGeneratorScreenState extends State<DocumentGeneratorScreen> {
             onPressed: _loading ? null : _doGenerate,
             child: _loading 
               ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-              : const Text('📄 GÉNÉRER LE DOCUMENT PDF'),
+              : Text(AppLocalizations.of(context)!.generate),
           ),
         ],
       ),
@@ -120,8 +121,8 @@ class _DocumentGeneratorScreenState extends State<DocumentGeneratorScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Document généré with succès', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-                      Text('Prêt à imprimer et signer', style: TextStyle(fontSize: 9, color: AppColors.primaryDark.withOpacity(0.7))),
+                      Text(AppLocalizations.of(context)!.docGenSuccess, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+                      Text(AppLocalizations.of(context)!.readyToPrint, style: TextStyle(fontSize: 9, color: AppColors.primaryDark.withOpacity(0.7))),
                     ],
                   ),
                 ),
@@ -193,7 +194,7 @@ class _DocumentGeneratorScreenState extends State<DocumentGeneratorScreen> {
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: OutlinedButton(onPressed: () => setState(() => _generated = false), child: const Text('✏️ MODIFIER'))),
+              Expanded(child: OutlinedButton(onPressed: () => setState(() => _generated = false), child: Text(AppLocalizations.of(context)!.modify))),
               const SizedBox(width: 8),
               Expanded(flex: 2, child: ElevatedButton(
                 onPressed: () async {
@@ -207,7 +208,7 @@ class _DocumentGeneratorScreenState extends State<DocumentGeneratorScreen> {
                   );
                   await PdfGenerator.saveAndShare(bytes, 'demande_bourse_ekema.pdf');
                 }, 
-                child: const Text('📥 TÉLÉCHARGER PDF'),
+                child: Text(AppLocalizations.of(context)!.download),
               )),
             ],
           ),

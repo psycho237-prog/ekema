@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 
 class EkemaSearchBar extends StatelessWidget {
@@ -33,8 +34,8 @@ class EkemaSearchBar extends StatelessWidget {
           Expanded(
             child: TextField(
               onChanged: onSearch,
-              decoration: const InputDecoration(
-                hintText: 'Décrivez votre situation...',
+              decoration: InputDecoration(
+                hintText: AppLocalizations.of(context)!.searchHint,
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,

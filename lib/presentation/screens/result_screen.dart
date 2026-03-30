@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 import '../providers/procedure_provider.dart';
 
@@ -15,10 +16,11 @@ class _ResultScreenState extends State<ResultScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<ProcedureProvider>();
     final procedure = provider.selectedProcedure;
 
-    if (procedure == null) return const Scaffold(body: Center(child: Text('Erreur')));
+    if (procedure == null) return Scaffold(body: Center(child: Text(l10n.noProcedureSelected)));
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -31,9 +33,9 @@ class _ResultScreenState extends State<ResultScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'VOTRE PLAN PERSONNALISÉ',
-                    style: TextStyle(
+                  Text(
+                    l10n.yourPersonalizedPlan,
+                    style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                       color: AppColors.muted,
@@ -87,9 +89,9 @@ class _ResultScreenState extends State<ResultScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Plan généré 100% hors ligne',
-            style: TextStyle(color: Colors.white60, fontSize: 11),
+          Text(
+            l10n.planGeneratedOffline,
+            style: const TextStyle(color: Colors.white60, fontSize: 11),
           ),
           const SizedBox(height: 16),
           Row(
@@ -219,9 +221,9 @@ class _ResultScreenState extends State<ResultScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'DOCUMENTS À PRÉPARER',
-          style: TextStyle(
+        Text(
+          l10n.documentsToPrepare,
+          style: const TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w700,
             color: AppColors.muted,
@@ -262,15 +264,15 @@ class _ResultScreenState extends State<ResultScreen> {
       ),
       child: Row(
         children: [
-          _buildCircleAction(Icons.map_outlined, 'Carte'),
+          _buildCircleAction(context, Icons.map_outlined, l10n.map),
           const SizedBox(width: 8),
-          _buildCircleAction(Icons.phone_outlined, 'Appeler'),
+          _buildCircleAction(context, Icons.phone_outlined, l10n.call),
           const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton.icon(
               onPressed: () {},
               icon: const Icon(Icons.share, size: 18),
-              label: const Text('PARTAGER'),
+              label: Text(l10n.share),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF25D366), // WhatsApp Green
               ),
@@ -281,7 +283,7 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
-  Widget _buildCircleAction(IconData icon, String label) {
+  Widget _buildCircleAction(BuildContext context, IconData icon, String label) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [

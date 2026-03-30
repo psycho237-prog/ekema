@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 import '../providers/procedure_provider.dart';
 import '../providers/voice_provider.dart';
@@ -16,11 +17,12 @@ class _DialogueScreenState extends State<DialogueScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<ProcedureProvider>();
     final procedure = provider.selectedProcedure;
 
     if (procedure == null) {
-      return const Scaffold(body: Center(child: Text('Aucune procédure sélectionnée.')));
+      return Scaffold(body: Center(child: Text(l10n.noProcedureSelected)));
     }
 
     return Scaffold(
@@ -35,14 +37,14 @@ class _DialogueScreenState extends State<DialogueScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(procedure.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-            const Text('Dialogue intelligent', style: TextStyle(fontSize: 10, color: AppColors.muted)),
+            Text(l10n.intelligentDialogue, style: const TextStyle(fontSize: 10, color: AppColors.muted)),
           ],
         ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: Chip(
-              label: Text('${provider.currentQuestionIndex}/${procedure.questions.length} questions'),
+              label: Text('${provider.currentQuestionIndex}/${procedure.questions.length} ${l10n.questions}'),
               labelStyle: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
               backgroundColor: AppColors.primaryLight,
               side: BorderSide.none,
@@ -95,16 +97,17 @@ class _DialogueScreenState extends State<DialogueScreen> {
   }
 
   Widget _buildSpeakButton(BuildContext context, String text) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.only(top: 4),
       child: InkWell(
         onTap: () => context.read<VoiceProvider>().speak(text),
         child: Row(
           mainAxisSize: MainAxisSize.min,
-          children: const [
-            Icon(Icons.volume_up, size: 14, color: AppColors.primary),
-            SizedBox(width: 4),
-            Text('Écouter la question', style: TextStyle(fontSize: 9, color: AppColors.primary, fontWeight: FontWeight.bold)),
+          children: [
+            const Icon(Icons.volume_up, size: 14, color: AppColors.primary),
+            const SizedBox(width: 4),
+            Text(l10n.listenToQuestion, style: const TextStyle(fontSize: 9, color: AppColors.primary, fontWeight: FontWeight.bold)),
           ],
         ),
       ),
@@ -156,6 +159,7 @@ class _DialogueScreenState extends State<DialogueScreen> {
   }
 
   Widget _buildInputBar(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final voice = context.watch<VoiceProvider>();
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 32),
@@ -173,7 +177,7 @@ class _DialogueScreenState extends State<DialogueScreen> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                voice.isListening ? 'Écoute en cours...' : 'Répondre ou parler...', 
+                voice.isListening ? l10n.listening : l10n.answeringOrTalking, 
                 style: const TextStyle(fontSize: 12, color: AppColors.muted),
               ),
             ),

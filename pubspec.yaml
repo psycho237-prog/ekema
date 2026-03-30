@@ -9,8 +9,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   google_fonts: ^6.1.0
   provider: ^6.1.1
+  flutter_svg: ^2.0.10+1
   sqflite: ^2.3.0
   path: ^1.8.3
   speech_to_text: ^6.6.0
@@ -31,8 +34,10 @@ dev_dependencies:
   flutter_lints: ^2.0.0
 
 flutter:
+  generate: true
   uses-material-design: true
   assets:
+    - assets/logo.svg
     - assets/json/procedures.json
     - assets/json/mock_cni.json
     - assets/json/mock_ens.json

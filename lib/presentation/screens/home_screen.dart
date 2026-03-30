@@ -4,12 +4,14 @@ import '../../core/theme/app_theme.dart';
 import '../providers/procedure_provider.dart';
 import '../widgets/category_card.dart';
 import '../widgets/search_bar.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
@@ -23,9 +25,9 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   if (context.watch<ProcedureProvider>().searchResults.length < context.watch<ProcedureProvider>().procedures.length || 
                       context.watch<ProcedureProvider>().searchResults.isEmpty) ...[
-                    const Text(
-                      'RÉSULTATS DE RECHERCHE',
-                      style: TextStyle(
+                    Text(
+                      l10n.searchResults.toUpperCase(),
+                      style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         color: AppColors.muted,
@@ -37,12 +39,12 @@ class HomeScreen extends StatelessWidget {
                     const SizedBox(height: 24),
                     TextButton(
                       onPressed: () => context.read<ProcedureProvider>().search(''),
-                      child: const Text('Retour aux catégories', style: TextStyle(fontSize: 12, color: AppColors.primary)),
+                      child: Text(l10n.backToCategories, style: const TextStyle(fontSize: 12, color: AppColors.primary)),
                     ),
                   ] else ...[
-                    const Text(
-                      'CATÉGORIES',
-                      style: TextStyle(
+                    Text(
+                      l10n.categories.toUpperCase(),
+                      style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         color: AppColors.muted,
@@ -52,9 +54,9 @@ class HomeScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     _buildCategoryGrid(context),
                     const SizedBox(height: 24),
-                    const Text(
-                      'HISTORIQUE RÉCENT',
-                      style: TextStyle(
+                    Text(
+                      l10n.recentHistory.toUpperCase(),
+                      style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         color: AppColors.muted,
@@ -65,7 +67,7 @@ class HomeScreen extends StatelessWidget {
                     _buildHistoryList(),
                   ],
                   const SizedBox(height: 24),
-                  _buildOfflineBadge(),
+                  _buildOfflineBadge(context),
                 ],
               ),
             ),
@@ -77,6 +79,8 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final localeProvider = context.watch<LocaleProvider>();
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -99,17 +103,27 @@ class HomeScreen extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'EKEMA',
-                        style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                          color: Colors.white,
-                          fontSize: 28,
-                          letterSpacing: -0.5,
-                        ),
+                      Row(
+                        children: [
+                          SvgPicture.asset(
+                            'assets/logo.svg',
+                            width: 28,
+                            height: 28,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            l10n.appTitle,
+                            style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                              color: Colors.white,
+                              fontSize: 28,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ],
                       ),
-                      const Text(
-                        'Vos démarches, simplifiées.',
-                        style: TextStyle(
+                      Text(
+                        l10n.appSubtitle,
+                        style: const TextStyle(
                           color: Colors.white60,
                           fontSize: 11,
                           letterSpacing: 0.3,
@@ -117,20 +131,40 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white12,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Center(child: Text('👤', style: TextStyle(fontSize: 18))),
+                  Row(
+                    children: [
+                      InkWell(
+                        onTap: () => localeProvider.toggleLocale(),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white12,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white24, width: 0.5),
+                          ),
+                          child: Text(
+                            localeProvider.locale.languageCode.toUpperCase(),
+                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white12,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Center(child: Text('👤', style: TextStyle(fontSize: 18))),
+                      ),
+                    ],
                   ),
                 ],
               ),
               const SizedBox(height: 16),
               Text(
-                'Bonjour 👋 Comment puis-je vous aider ?',
+                l10n.welcomeMessage,
                 style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 13),
               ),
             ],
@@ -254,7 +288,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOfflineBadge() {
+  Widget _buildOfflineBadge(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -264,9 +299,9 @@ class HomeScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '💡 Fonctionnement hors ligne',
-            style: TextStyle(
+          Text(
+            l10n.offlineBadgeTitle,
+            style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryDark,
@@ -274,7 +309,7 @@ class HomeScreen extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'EKEMA fonctionne sans connexion internet. Toutes les procédures sont stockées localement sur votre appareil.',
+            l10n.offlineBadgeBody,
             style: TextStyle(
               fontSize: 11,
               height: 1.5,
