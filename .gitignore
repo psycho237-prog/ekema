@@ -56,3 +56,4 @@ ServiceDefinitions.json
 
 # Web
 .web/
+.gradle/

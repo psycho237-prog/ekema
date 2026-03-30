@@ -21,29 +21,49 @@ class HomeScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'CATÉGORIES',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.muted,
-                      letterSpacing: 0.7,
+                  if (context.watch<ProcedureProvider>().searchResults.length < context.watch<ProcedureProvider>().procedures.length || 
+                      context.watch<ProcedureProvider>().searchResults.isEmpty) ...[
+                    const Text(
+                      'RÉSULTATS DE RECHERCHE',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.muted,
+                        letterSpacing: 0.7,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildCategoryGrid(context),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'HISTORIQUE RÉCENT',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.muted,
-                      letterSpacing: 0.7,
+                    const SizedBox(height: 12),
+                    _buildResultsList(context),
+                    const SizedBox(height: 24),
+                    TextButton(
+                      onPressed: () => context.read<ProcedureProvider>().search(''),
+                      child: const Text('Retour aux catégories', style: TextStyle(fontSize: 12, color: AppColors.primary)),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildHistoryList(),
+                  ] else ...[
+                    const Text(
+                      'CATÉGORIES',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.muted,
+                        letterSpacing: 0.7,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildCategoryGrid(context),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'HISTORIQUE RÉCENT',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.muted,
+                        letterSpacing: 0.7,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildHistoryList(),
+                  ],
                   const SizedBox(height: 24),
                   _buildOfflineBadge(),
                 ],
@@ -131,12 +151,12 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildCategoryGrid(BuildContext context) {
     final categories = [
-      {'icon': '🪪', 'label': 'CNI / Passeport', 'route': '/dialogue'},
-      {'icon': '📄', 'label': 'Actes civils', 'route': null},
-      {'icon': '🏢', 'label': 'Entreprise', 'route': null},
-      {'icon': '🎓', 'label': 'Concours', 'route': null},
-      {'icon': '⚖️', 'label': 'Judiciaire', 'route': null},
-      {'icon': '✍️', 'label': 'Rédiger', 'route': '/document-generator'},
+      {'icon': '🪪', 'label': 'CNI / Passeport'},
+      {'icon': '📄', 'label': 'Actes civils'},
+      {'icon': '🏢', 'label': 'Entreprise'},
+      {'icon': '🎓', 'label': 'Concours'},
+      {'icon': '⚖️', 'label': 'Judiciaire'},
+      {'icon': '✍️', 'label': 'Rédiger'},
     ];
 
     return GridView.builder(
@@ -155,20 +175,52 @@ class HomeScreen extends StatelessWidget {
           icon: cat['icon'] as String,
           label: cat['label'] as String,
           onTap: () {
-            if (cat['route'] != null) {
-              if (cat['label'] == 'CNI / Passeport') {
-                final provider = context.read<ProcedureProvider>();
-                if (provider.procedures.isNotEmpty) {
-                  provider.selectProcedure(provider.procedures.first);
-                  Navigator.pushNamed(context, '/dialogue');
-                }
-              } else {
-                Navigator.pushNamed(context, cat['route'] as String);
-              }
+            if (cat['label'] == 'Rédiger') {
+              Navigator.pushNamed(context, '/document-generator');
+            } else {
+              // Filter search results to the category to show common procedures
+              context.read<ProcedureProvider>().search(cat['label'] as String);
             }
           },
         );
       },
+    );
+  }
+
+  Widget _buildResultsList(BuildContext context) {
+    final results = context.watch<ProcedureProvider>().searchResults;
+    
+    if (results.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 40),
+        child: const Center(
+          child: Text(
+            'Pas de résultat. Essayez d\'autres mots-clés.',
+            style: TextStyle(fontSize: 12, color: AppColors.muted),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: results.map((proc) => Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.border, width: 1),
+        ),
+        child: ListTile(
+          onTap: () {
+            context.read<ProcedureProvider>().selectProcedure(proc);
+            Navigator.pushNamed(context, '/dialogue');
+          },
+          leading: const Text('📋', style: TextStyle(fontSize: 18)),
+          title: Text(proc.title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+          subtitle: Text(proc.category, style: const TextStyle(fontSize: 10, color: AppColors.muted)),
+          trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.primary),
+        ),
+      )).toList(),
     );
   }
 
