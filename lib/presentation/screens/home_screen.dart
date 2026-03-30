@@ -5,6 +5,8 @@ import '../providers/procedure_provider.dart';
 import '../widgets/category_card.dart';
 import '../widgets/search_bar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../providers/locale_provider.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -322,6 +324,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildBottomNav(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.only(bottom: 24, top: 12),
       decoration: const BoxDecoration(
@@ -331,10 +334,10 @@ class HomeScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildNavItem('🏠', 'Accueil', true),
-          _buildNavItem('💬', 'Dialogue', false),
-          _buildNavItem('📋', 'Plan', false),
-          _buildNavItem('✍️', 'Rédiger', false),
+          _buildNavItem('🏠', l10n.backToCategories, true), // Approx for Home
+          _buildNavItem('💬', l10n.intelligentDialogue, false),
+          _buildNavItem('📋', l10n.searchResults, false),
+          _buildNavItem('✍️', l10n.writeDocument, false),
         ],
       ),
     );

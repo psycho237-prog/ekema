@@ -56,11 +56,12 @@ class _ResultScreenState extends State<ResultScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomActions(),
+      bottomNavigationBar: _buildBottomActions(context),
     );
   }
 
   Widget _buildHeader(BuildContext context, dynamic procedure) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 60, 20, 32),
@@ -255,7 +256,8 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
-  Widget _buildBottomActions() {
+  Widget _buildBottomActions(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       decoration: const BoxDecoration(
