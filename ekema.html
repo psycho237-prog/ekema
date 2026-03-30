@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EKEMA — Vos démarches, simplifiées.</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    background: #0e0e1c;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    overflow-x: hidden;
+  }
+  #root { width: 100%; display: flex; align-items: center; justify-content: center; }
+
+  input, button { font-family: inherit; }
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(11,107,74,0.4); border-radius: 10px; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(0.85); }
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(11,107,74,0); }
+    50%       { box-shadow: 0 0 0 8px rgba(11,107,74,0.15); }
+  }
+  @keyframes starFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.6; }
+    50%       { transform: translateY(-8px) rotate(180deg); opacity: 1; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+/* ─── DESIGN TOKENS ─────────────────────────────────────────── */
+const C = {
+  G:   "#0B6B4A",
+  GD:  "#053D2B",
+  GL:  "#DCF2E8",
+  GM:  "#1DB872",
+  GB:  "#F0FAF5",
+  AMB: "#D97706",
+  AML: "#FEF3C7",
+  CRL: "#DC2626",
+  CRL2:"#FEE2E2",
+  IND: "#4F46E5",
+  INL: "#EEF2FF",
+  BG:  "#F5F7F6",
+  SRF: "#FFFFFF",
+  TX:  "#0F1A14",
+  MT:  "#6B7280",
+  BD:  "rgba(0,0,0,0.07)",
+};
+
+/* ─── HELPERS ────────────────────────────────────────────────── */
+function Tag({ l, t }) {
+  const map = {
+    doc:  { bg: C.INL, color: C.IND  },
+    cost: { bg: C.AML, color: "#92400E" },
+    time: { bg: C.GL,  color: C.GD   },
+  };
+  const s = map[t] || map.doc;
+  return (
+    <span style={{
+      background: s.bg, color: s.color,
+      fontSize: 9.5, padding: "2px 8px", borderRadius: 20,
+      fontWeight: 700, letterSpacing: 0.1, display: "inline-block",
+    }}>{l}</span>
+  );
+}
+
+function Btn({ children, onClick, primary, style = {} }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        background: primary ? (hover ? C.GD : C.G) : (hover ? C.BG : C.SRF),
+        color: primary ? "#fff" : C.TX,
+        border: primary ? "none" : `0.5px solid ${C.BD}`,
+        borderRadius: 12, padding: "10px 8px",
+        textAlign: "center", fontSize: 11, fontWeight: 700,
+        cursor: "pointer", transition: "all 0.18s",
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+        userSelect: "none",
+        ...style,
+      }}
+    >{children}</div>
+  );
+}
+
+/* ─── DATA ───────────────────────────────────────────────────── */
+const CATS = [
+  { icon: "🪪", label: "CNI / Passeport",  screen: "chat" },
+  { icon: "📄", label: "Actes civils",      screen: null   },
+  { icon: "🏢", label: "Entreprise",        screen: null   },
+  { icon: "🎓", label: "Concours",          screen: null   },
+  { icon: "⚖️", label: "Judiciaire",        screen: null   },
+  { icon: "✍️", label: "Rédiger",           screen: "doc"  },
+];
+
+const STEPS = [
+  {
+    num: 1, title: "Préparer les documents",
+    desc: "Réunissez tous les documents nécessaires avant de vous déplacer.",
+    tags: [
+      { l: "Ancienne CNI", t: "doc" },
+      { l: "Acte de naissance", t: "doc" },
+      { l: "2 photos d'identité", t: "doc" },
+    ],
+  },
+  {
+    num: 2, active: true, title: "DGSN Centrale — Yaoundé",
+    desc: "Rue Nachtigal, près de la Préfecture du Mfoundi.",
+    tags: [
+      { l: "2 500 FCFA", t: "cost" },
+      { l: "Lun–Ven 7h30–14h", t: "time" },
+    ],
+  },
+  {
+    num: 3, title: "Déposer le dossier & payer",
+    desc: "Timbre fiscal 1 000 FCFA au guichet dédié. Conservez votre récépissé.",
+    tags: [{ l: "1 000 FCFA", t: "cost" }],
+  },
+  {
+    num: 4, title: "Retrait de la nouvelle CNI",
+    desc: "Présentez votre récépissé de dépôt au guichet retrait.",
+    tags: [{ l: "5–7 jours ouvrables", t: "time" }],
+  },
+];
+
+const CHAT_FLOW = [
+  { from: "bot", text: "Bonjour ! Je vais vous aider pour votre démarche CNI. S'agit-il d'une première demande ou d'un renouvellement ?" },
+  { from: "choices", options: ["Première demande", "Renouvellement", "Perte / Vol"] },
+  { from: "bot", text: "D'accord. Dans quelle ville êtes-vous ? Cela me permettra de vous indiquer le bon bureau." },
+  { from: "choices", options: ["Yaoundé", "Douala", "Bafoussam", "Autre ville"] },
+  { from: "bot", text: "Avez-vous encore votre ancienne CNI en votre possession ?" },
+  { from: "choices", options: ["Oui, je l'ai", "Non, elle est perdue", "Elle est expirée"] },
+  { from: "bot", text: "Parfait 🎉 J'ai tout ce qu'il me faut. Votre plan d'action personnalisé est prêt !", redirect: "result" },
+];
+
+const DOC_TYPES = [
+  "Demande de bourse",
+  "Lettre de motivation",
+  "Requête au Doyen",
+  "Contestation résultats",
+  "Demande de stage",
+];
+
+/* ─── SCREEN: HOME ───────────────────────────────────────────── */
+function ScreenHome({ go }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      {/* Header */}
+      <div style={{
+        background: `linear-gradient(148deg, ${C.GD} 0%, ${C.G} 100%)`,
+        padding: "44px 20px 30px", color: "#fff", flexShrink: 0,
+        position: "relative", overflow: "hidden",
+      }}>
+        {/* Decorative circles */}
+        <div style={{ position:"absolute", top:-30, right:-30, width:120, height:120, borderRadius:"50%", background:"rgba(255,255,255,0.04)" }}/>
+        <div style={{ position:"absolute", bottom:-20, left:40, width:80, height:80, borderRadius:"50%", background:"rgba(255,255,255,0.03)" }}/>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", position:"relative" }}>
+          <div>
+            <div style={{ fontSize:26, fontWeight:800, letterSpacing:-0.5, fontFamily:"'Fraunces', serif" }}>EKEMA</div>
+            <div style={{ fontSize:10.5, opacity:0.6, marginTop:1, letterSpacing:0.3 }}>Vos démarches, simplifiées.</div>
+          </div>
+          <div style={{ width:36, height:36, borderRadius:"50%", background:"rgba(255,255,255,0.12)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16 }}>👤</div>
+        </div>
+        <div style={{ marginTop:14, fontSize:13, opacity:0.85 }}>Bonjour 👋 Comment puis-je vous aider ?</div>
+      </div>
+
+      {/* Search bar */}
+      <div style={{ margin:"0 16px", marginTop:-18, flexShrink:0, position:"relative", zIndex:2 }}>
+        <div style={{
+          background: C.SRF, borderRadius:16, padding:"10px 14px",
+          display:"flex", alignItems:"center", gap:10,
+          boxShadow:"0 6px 24px rgba(0,0,0,0.10)",
+        }}>
+          <span style={{ fontSize:15, opacity:0.35 }}>🔍</span>
+          <span style={{ flex:1, fontSize:11, color:"#9CA3AF" }}>Décrivez votre situation en texte ou en voix...</span>
+          <div onClick={() => go("chat")} style={{
+            width:34, height:34, background:C.G, borderRadius:"50%",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            cursor:"pointer", transition:"transform 0.15s", animation:"glowPulse 2s infinite",
+          }}
+            onMouseEnter={e => e.currentTarget.style.transform="scale(1.12)"}
+            onMouseLeave={e => e.currentTarget.style.transform="scale(1)"}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+              <path d="M12 1a4 4 0 0 1 4 4v7a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm-1 17.93V22h2v-3.07A8 8 0 0 0 20 11h-2a6 6 0 0 1-12 0H4a8 8 0 0 0 7 7.93z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* Body */}
+      <div style={{ overflowY:"auto", flex:1, padding:"4px 16px 16px" }}>
+
+        <div style={{ fontSize:10, fontWeight:700, color:C.MT, padding:"14px 0 8px", textTransform:"uppercase", letterSpacing:0.7 }}>Catégories</div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
+          {CATS.map((c, i) => {
+            const [h, setH] = useState(false);
+            return (
+              <div key={i} onClick={() => c.screen && go(c.screen)}
+                onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
+                style={{
+                  background: C.SRF, borderRadius:16, padding:"14px 8px", textAlign:"center",
+                  border: h && c.screen ? `1px solid ${C.G}` : `1px solid ${C.BD}`,
+                  cursor: c.screen ? "pointer" : "default",
+                  transform: h && c.screen ? "translateY(-3px)" : "translateY(0)",
+                  boxShadow: h && c.screen ? "0 8px 20px rgba(11,107,74,0.12)" : "none",
+                  transition: "all 0.18s",
+                  animation: `fadeUp 0.35s ease ${i * 0.06}s both`,
+                }}>
+                <div style={{ fontSize:22, marginBottom:5 }}>{c.icon}</div>
+                <div style={{ fontSize:9.5, color: h && c.screen ? C.G : C.TX, fontWeight:700, lineHeight:1.3, transition:"color 0.18s" }}>{c.label}</div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div style={{ fontSize:10, fontWeight:700, color:C.MT, padding:"16px 0 8px", textTransform:"uppercase", letterSpacing:0.7 }}>Historique récent</div>
+        {["Renouvellement CNI", "Concours ENS 2026", "Demande de bourse MINESUP"].map((item, i) => {
+          const [h, setH] = useState(false);
+          return (
+            <div key={i} onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
+              style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 0", borderBottom: i < 2 ? `0.5px solid ${C.BD}` : "none", cursor:"pointer", opacity: h ? 0.65 : 1, transition:"opacity 0.15s" }}>
+              <div style={{ width:8, height:8, borderRadius:"50%", background:C.GL, border:`2px solid ${C.G}`, flexShrink:0 }}/>
+              <div style={{ flex:1, fontSize:11, color:C.TX }}>{item}</div>
+              <div style={{ fontSize:14, color:C.MT }}>›</div>
+            </div>
+          );
+        })}
+
+        <div style={{ marginTop:14, background:C.GL, borderRadius:14, padding:"12px 14px", animation:"fadeUp 0.4s ease 0.3s both" }}>
+          <div style={{ fontSize:10, color:C.GD, fontWeight:700, marginBottom:4 }}>💡 Fonctionnement hors ligne</div>
+          <div style={{ fontSize:10.5, color:C.GD, lineHeight:1.55, opacity:0.8 }}>EKEMA fonctionne sans connexion internet. Toutes les procédures sont stockées localement sur votre appareil.</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── SCREEN: CHAT ───────────────────────────────────────────── */
+function ScreenChat({ go }) {
+  const [msgs, setMsgs] = useState([CHAT_FLOW[0]]);
+  const [flowIdx, setFlowIdx] = useState(1);
+  const [waiting, setWaiting] = useState(false);
+  const bottomRef = useRef();
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
+
+  const handleChoice = (opt, redirect) => {
+    if (waiting) return;
+    setMsgs(prev => [...prev, { from: "user", text: opt }]);
+    setWaiting(true);
+    setTimeout(() => {
+      const next = CHAT_FLOW[flowIdx];
+      if (!next) { setWaiting(false); return; }
+      setMsgs(prev => [...prev, next]);
+      setFlowIdx(i => i + 1);
+      setWaiting(false);
+      if (next.redirect) setTimeout(() => go(next.redirect), 900);
+    }, 650);
+  };
+
+  const progress = Math.min(Math.round((flowIdx / CHAT_FLOW.length) * 100), 100);
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", height:"100%" }}>
+      <div style={{ background:C.SRF, padding:"40px 16px 12px", borderBottom:`0.5px solid ${C.BD}`, flexShrink:0 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+          <div onClick={() => go("home")} style={{ width:30, height:30, borderRadius:8, background:C.BG, display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, cursor:"pointer" }}>‹</div>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:13, fontWeight:700 }}>CNI / Passeport</div>
+            <div style={{ fontSize:10, color:C.MT }}>Dialogue intelligent</div>
+          </div>
+          <div style={{ background:C.GL, color:C.GD, fontSize:9, padding:"3px 10px", borderRadius:20, fontWeight:700 }}>
+            {Math.min(flowIdx - 1, 3)}/3 réponses
+          </div>
+        </div>
+        <div style={{ marginTop:10, background:"#E5E7EB", borderRadius:4, height:3 }}>
+          <div style={{ background:C.G, width:`${progress}%`, height:"100%", borderRadius:4, transition:"width 0.6s ease" }}/>
+        </div>
+      </div>
+
+      <div style={{ flex:1, overflowY:"auto", padding:"14px", display:"flex", flexDirection:"column", gap:10 }}>
+        {msgs.map((m, i) => {
+          if (m.from === "bot") return (
+            <div key={i} style={{ background:C.SRF, border:`0.5px solid ${C.BD}`, borderRadius:"4px 14px 14px 14px", padding:"10px 12px", maxWidth:"88%", fontSize:11, lineHeight:1.6, color:C.TX, animation:"fadeUp 0.3s ease" }}>
+              {m.text}
+            </div>
+          );
+          if (m.from === "user") return (
+            <div key={i} style={{ background:C.G, borderRadius:"14px 4px 14px 14px", padding:"10px 12px", maxWidth:"72%", fontSize:11, lineHeight:1.6, color:"#fff", alignSelf:"flex-end", animation:"slideIn 0.25s ease" }}>
+              {m.text}
+            </div>
+          );
+          if (m.from === "choices") return (
+            <div key={i} style={{ display:"flex", flexWrap:"wrap", gap:6, animation:"fadeUp 0.3s ease" }}>
+              {m.options.map((opt, j) => {
+                const [h, setH] = useState(false);
+                return (
+                  <div key={j} onClick={() => handleChoice(opt, m.redirect)}
+                    onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
+                    style={{
+                      background: h ? C.G : C.GL, border:`1px solid ${C.G}`,
+                      color: h ? "#fff" : C.GD, borderRadius:20,
+                      padding:"7px 12px", fontSize:10, fontWeight:700, cursor:"pointer",
+                      transition:"all 0.15s", userSelect:"none",
+                    }}>{opt}</div>
+                );
+              })}
+            </div>
+          );
+          return null;
+        })}
+
+        {waiting && (
+          <div style={{ display:"flex", gap:5, padding:"8px 12px", background:C.SRF, border:`0.5px solid ${C.BD}`, borderRadius:"4px 14px 14px 14px", width:60 }}>
+            {[0,1,2].map(j => (
+              <div key={j} style={{ width:6, height:6, borderRadius:"50%", background:C.G, animation:`pulse 1.1s ${j*0.22}s infinite` }}/>
+            ))}
+          </div>
+        )}
+        <div ref={bottomRef}/>
+      </div>
+
+      <div style={{ background:C.SRF, borderTop:`0.5px solid ${C.BD}`, padding:"10px 14px", display:"flex", gap:8, alignItems:"center", flexShrink:0 }}>
+        <div style={{ flex:1, background:C.BG, borderRadius:20, padding:"8px 12px", fontSize:11, color:"#9CA3AF" }}>Répondre ou parler...</div>
+        <div style={{ width:32, height:32, background:C.G, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── SCREEN: RESULT ─────────────────────────────────────────── */
+function ScreenResult({ go }) {
+  const [checked, setChecked] = useState([true, false, false, false]);
+  const doneCount = checked.filter(Boolean).length;
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", height:"100%" }}>
+      <div style={{ background:`linear-gradient(148deg,${C.GD} 0%,${C.G} 100%)`, padding:"40px 18px 18px", color:"#fff", flexShrink:0, position:"relative", overflow:"hidden" }}>
+        <div style={{ position:"absolute", top:-20, right:-20, width:100, height:100, borderRadius:"50%", background:"rgba(255,255,255,0.04)" }}/>
+        <div onClick={() => go("home")} style={{ fontSize:20, opacity:0.55, cursor:"pointer", marginBottom:10 }}>‹</div>
+        <div style={{ fontSize:9.5, opacity:0.55, textTransform:"uppercase", letterSpacing:0.8 }}>Votre plan personnalisé</div>
+        <div style={{ fontSize:17, fontWeight:800, marginTop:4, fontFamily:"'Fraunces',serif" }}>Renouvellement CNI — Yaoundé</div>
+        <div style={{ display:"flex", gap:7, marginTop:10, flexWrap:"wrap" }}>
+          {[["📅","5–7 jours"],["💰","~3 500 FCFA"],["📍","Yaoundé"]].map(([icon,label],i)=>(
+            <div key={i} style={{ background:"rgba(255,255,255,0.14)", borderRadius:20, padding:"4px 10px", fontSize:10, display:"flex", alignItems:"center", gap:4 }}>{icon} {label}</div>
+          ))}
+        </div>
+        <div style={{ marginTop:14 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", fontSize:9.5, opacity:0.6, marginBottom:5 }}>
+            <span>Progression</span><span>{doneCount}/4 étapes complétées</span>
+          </div>
+          <div style={{ background:"rgba(255,255,255,0.15)", borderRadius:4, height:5 }}>
+            <div style={{ background:"#fff", width:`${doneCount*25}%`, height:"100%", borderRadius:4, transition:"width 0.5s ease" }}/>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ flex:1, overflowY:"auto", padding:"12px 14px" }}>
+        <div style={{ fontSize:10, color:C.MT, marginBottom:10 }}>Touchez une étape pour la marquer comme complétée ✓</div>
+        {STEPS.map((s, i) => {
+          const [h, setH] = useState(false);
+          return (
+            <div key={i}
+              onClick={() => setChecked(prev => prev.map((v,j) => j===i ? !v : v))}
+              onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
+              style={{
+                background: C.SRF, borderRadius:14, padding:"12px 14px",
+                display:"flex", gap:12, marginBottom:8, cursor:"pointer",
+                border: checked[i] ? `1.5px solid ${C.G}` : s.active && !checked[i] ? `1.5px solid ${C.G}` : `0.5px solid ${C.BD}`,
+                opacity: i > 1 && !checked[i] ? 0.55 : 1,
+                boxShadow: h ? "0 4px 14px rgba(0,0,0,0.07)" : "none",
+                transition:"all 0.2s",
+                animation:`fadeUp 0.3s ease ${i*0.07}s both`,
+              }}>
+              <div style={{
+                width:24, height:24, borderRadius:"50%", flexShrink:0, marginTop:1,
+                background: checked[i] ? C.GL : s.active ? C.G : C.BG,
+                border: checked[i] ? `2px solid ${C.G}` : s.active ? "none" : `1.5px solid ${C.BD}`,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                fontSize:11, fontWeight:800, color: checked[i] ? C.G : s.active ? "#fff" : C.MT,
+                transition:"all 0.2s",
+              }}>{checked[i] ? "✓" : s.num}</div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:12, fontWeight:700, color:C.TX }}>{s.title}</div>
+                <div style={{ fontSize:10, color:C.MT, marginTop:2, lineHeight:1.45 }}>{s.desc}</div>
+                {s.tags && <div style={{ display:"flex", gap:4, marginTop:6, flexWrap:"wrap" }}>{s.tags.map((t,j)=><Tag key={j} {...t}/>)}</div>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ background:C.SRF, borderTop:`0.5px solid ${C.BD}`, padding:"10px 14px", display:"flex", gap:8, flexShrink:0 }}>
+        <Btn style={{ flex:1 }}>🗺 Carte</Btn>
+        <Btn style={{ flex:1 }}>📞 Appeler</Btn>
+        <Btn primary style={{ flex:1.5, background:"#25D366" }}>⬆ WhatsApp</Btn>
+      </div>
+    </div>
+  );
+}
+
+/* ─── SCREEN: DOC ────────────────────────────────────────────── */
+function ScreenDoc({ go }) {
+  const [activeDoc, setActiveDoc] = useState(0);
+  const [form, setForm] = useState({ nom:"Fatima MBARGA", niveau:"Master 1", filiere:"Droit public", universite:"Université de Yaoundé II", moyenne:"", bourse:"" });
+  const [generated, setGenerated] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const doGenerate = () => {
+    if (loading) return;
+    setLoading(true);
+    setTimeout(() => { setLoading(false); setGenerated(true); }, 1600);
+  };
+
+  const Field = ({ label, fkey, half, placeholder }) => (
+    <div style={{ ...(half ? {} : { gridColumn:"1 / -1" }), marginBottom: half ? 0 : 0 }}>
+      <div style={{ fontSize:9.5, fontWeight:700, color:C.MT, marginBottom:4, textTransform:"uppercase", letterSpacing:0.4 }}>{label}</div>
+      <input value={form[fkey] || ""} placeholder={placeholder || ""}
+        onChange={e => setForm(f => ({ ...f, [fkey]: e.target.value }))}
+        style={{
+          width:"100%", background:C.SRF,
+          border:`0.5px solid ${form[fkey] ? C.G : C.BD}`,
+          borderRadius:10, padding:"9px 12px", fontSize:11, color:C.TX,
+          outline:"none", transition:"border-color 0.2s",
+        }}
+      />
+    </div>
+  );
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", height:"100%" }}>
+      <div style={{ background:C.SRF, padding:"40px 16px 12px", borderBottom:`0.5px solid ${C.BD}`, flexShrink:0 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+          <div onClick={() => go("home")} style={{ width:30, height:30, borderRadius:8, background:C.BG, display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, cursor:"pointer" }}>‹</div>
+          <div>
+            <div style={{ fontSize:13, fontWeight:700 }}>Rédiger un document</div>
+            <div style={{ fontSize:10, color:C.MT }}>Génération officielle automatique</div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display:"flex", gap:6, padding:"12px 14px 0", overflowX:"auto", flexShrink:0, scrollbarWidth:"none" }}>
+        {DOC_TYPES.map((d, i) => (
+          <div key={i} onClick={() => { setActiveDoc(i); setGenerated(false); }} style={{
+            flexShrink:0, padding:"7px 12px", borderRadius:20, fontSize:10, fontWeight:700,
+            cursor:"pointer", whiteSpace:"nowrap",
+            background: activeDoc === i ? C.G : C.SRF,
+            color: activeDoc === i ? "#fff" : C.MT,
+            border:`0.5px solid ${activeDoc === i ? C.G : C.BD}`,
+            transition:"all 0.2s",
+          }}>{d}</div>
+        ))}
+      </div>
+
+      {generated ? (
+        <div style={{ flex:1, overflowY:"auto", padding:14, animation:"fadeUp 0.4s ease" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, background:C.GL, borderRadius:12, padding:"10px 14px" }}>
+            <span style={{ fontSize:20 }}>✅</span>
+            <div>
+              <div style={{ fontSize:12, fontWeight:700, color:C.GD }}>Document généré avec succès</div>
+              <div style={{ fontSize:10, color:C.GD, opacity:0.7 }}>Prêt à imprimer et signer</div>
+            </div>
+          </div>
+          <div style={{ background:C.SRF, borderRadius:14, border:`1px solid ${C.G}`, padding:16, fontSize:11, lineHeight:1.8, color:C.TX }}>
+            <div style={{ textAlign:"right", marginBottom:14, fontSize:10, color:C.MT }}>
+              {form.nom}<br/>Yaoundé, le {new Date().toLocaleDateString("fr-FR")}
+            </div>
+            <div style={{ fontWeight:700, fontSize:10, marginBottom:4 }}>
+              À l'attention de M. le Ministre<br/>MINESUP — Yaoundé
+            </div>
+            <div style={{ textAlign:"center", fontWeight:800, margin:"14px 0 10px", fontSize:12, textDecoration:"underline" }}>
+              DEMANDE DE BOURSE NATIONALE
+            </div>
+            <p style={{ marginBottom:10 }}>Je soussignée <strong>{form.nom}</strong>, étudiante en <strong>{form.niveau}</strong> de <strong>{form.filiere}</strong> à l'{form.universite}, ai l'honneur de solliciter l'attribution d'une bourse d'études nationale.</p>
+            <p style={{ marginBottom:10 }}>Désireuse de poursuivre mon parcours académique avec excellence, je me permets de porter ma candidature à votre bienveillante attention.</p>
+            <p>Veuillez agréer, Monsieur le Ministre, l'expression de ma haute considération.</p>
+            <div style={{ marginTop:20, textAlign:"right" }}>
+              <div style={{ fontSize:10, color:C.MT, marginBottom:4 }}>Fait à Yaoundé, le {new Date().toLocaleDateString("fr-FR")}</div>
+              <div style={{ fontWeight:700 }}>{form.nom}</div>
+            </div>
+          </div>
+          <div style={{ display:"flex", gap:8, marginTop:12 }}>
+            <Btn onClick={() => setGenerated(false)} style={{ flex:1 }}>✏️ Modifier</Btn>
+            <Btn primary style={{ flex:1.5 }}>📥 Télécharger PDF</Btn>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div style={{ flex:1, overflowY:"auto", padding:"10px 14px" }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+              <Field label="Nom complet" fkey="nom" />
+              <Field label="Université" fkey="universite" />
+              <Field label="Niveau" fkey="niveau" half />
+              <Field label="Filière" fkey="filiere" half />
+              <Field label="Moyenne /20" fkey="moyenne" placeholder="ex: 13.5" half />
+              <Field label="Type bourse" fkey="bourse" placeholder="MINESUP..." half />
+            </div>
+          </div>
+
+          <div style={{ padding:"10px 14px 14px", flexShrink:0 }}>
+            <div onClick={doGenerate} style={{
+              background: loading ? C.MT : C.G,
+              borderRadius:14, padding:"13px",
+              display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+              fontSize:13, fontWeight:800, color:"#fff", cursor:"pointer", transition:"background 0.2s",
+            }}>
+              {loading ? (
+                <>
+                  <div style={{ width:14, height:14, border:"2px solid rgba(255,255,255,0.3)", borderTop:"2px solid #fff", borderRadius:"50%", animation:"spin 0.7s linear infinite" }}/>
+                  Génération en cours...
+                </>
+              ) : <>📄 Générer le document PDF</>}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ─── NAV ────────────────────────────────────────────────────── */
+const NAV = [
+  { id:"home",   icon:"🏠", label:"Accueil"   },
+  { id:"chat",   icon:"💬", label:"Dialogue"  },
+  { id:"result", icon:"📋", label:"Mon plan"  },
+  { id:"doc",    icon:"✍️", label:"Rédiger"   },
+];
+
+/* ─── ROOT APP ───────────────────────────────────────────────── */
+function App() {
+  const [screen, setScreen] = useState("home");
+
+  const screens = {
+    home:   <ScreenHome   go={setScreen} />,
+    chat:   <ScreenChat   go={setScreen} />,
+    result: <ScreenResult go={setScreen} />,
+    doc:    <ScreenDoc    go={setScreen} />,
+  };
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", alignItems:"center", width:"100%" }}>
+
+      {/* Branding */}
+      <div style={{ textAlign:"center", marginBottom:30, color:"#fff" }}>
+        <div style={{ fontFamily:"'Fraunces',serif", fontSize:32, fontWeight:800, letterSpacing:-1, lineHeight:1 }}>EKEMA</div>
+        <div style={{ fontSize:11, opacity:0.35, letterSpacing:1.5, textTransform:"uppercase", marginTop:6 }}>Prototype interactif — Design MVP</div>
+        <div style={{ fontSize:10, opacity:0.2, marginTop:4 }}>Application mobile Android · IA pour la Société · GCD4F 2026</div>
+      </div>
+
+      {/* Phone shell */}
+      <div style={{
+        width:320,
+        background:"#0a0a0a",
+        borderRadius:48,
+        padding:10,
+        boxShadow:"0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05), inset 0 0 0 1px rgba(255,255,255,0.03)",
+        position:"relative",
+      }}>
+        {/* Notch */}
+        <div style={{ position:"absolute", top:10, left:"50%", transform:"translateX(-50%)", width:80, height:24, background:"#0a0a0a", borderRadius:"0 0 16px 16px", zIndex:10 }}/>
+        {/* Side buttons */}
+        <div style={{ position:"absolute", top:80, right:-3, width:3, height:32, background:"#1a1a1a", borderRadius:"0 3px 3px 0" }}/>
+        <div style={{ position:"absolute", top:64, left:-3, width:3, height:26, background:"#1a1a1a", borderRadius:"3px 0 0 3px" }}/>
+        <div style={{ position:"absolute", top:96, left:-3, width:3, height:26, background:"#1a1a1a", borderRadius:"3px 0 0 3px" }}/>
+
+        {/* Screen */}
+        <div style={{ background:C.BG, borderRadius:40, overflow:"hidden", height:580, display:"flex", flexDirection:"column" }}>
+          <div style={{ flex:1, overflow:"hidden", display:"flex", flexDirection:"column" }}>
+            {screens[screen]}
+          </div>
+        </div>
+      </div>
+
+      {/* Nav tabs */}
+      <div style={{ display:"flex", gap:4, marginTop:24, background:"rgba(255,255,255,0.07)", borderRadius:22, padding:"6px 8px" }}>
+        {NAV.map(n => {
+          const active = screen === n.id;
+          return (
+            <div key={n.id} onClick={() => setScreen(n.id)} style={{
+              padding:"8px 16px", borderRadius:16, cursor:"pointer",
+              background: active ? "rgba(11,107,74,0.35)" : "transparent",
+              color: active ? "#fff" : "rgba(255,255,255,0.35)",
+              fontSize:11, fontWeight:700, transition:"all 0.2s",
+              display:"flex", alignItems:"center", gap:5, userSelect:"none",
+              border: active ? "none" : "none",
+            }}>
+              <span style={{ fontSize:13 }}>{n.icon}</span>
+              {n.label}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Footer hint */}
+      <div style={{ color:"rgba(255,255,255,0.18)", fontSize:10, marginTop:16, textAlign:"center", maxWidth:360 }}>
+        Cliquez sur les catégories · Répondez aux questions du dialogue · Cochez les étapes du plan
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById("root"));
+</script>
+</body>
+</html>

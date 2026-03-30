@@ -1,0 +1,58 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+.idea/
+.project
+.settings/
+.vscode/
+*.iml
+
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+# Android
+*.apk
+*.ap_
+*.dex
+*.keystore
+bin/
+gen/
+local.properties
+proguard-project.txt
+proguard-rules.pro
+tests/
+
+# iOS
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.pbxuser
+DerivedData/
+build/
+DerivedData/
+*.moved-aside
+*.xccheckout
+*.xcworkspace
+!default.xcworkspace
+xcuserdata/
+!default.xcuserdatad
+Frameworks/
+Podfile.lock
+Pods/
+ServiceDefinitions.json
+
+# Web
+.web/
