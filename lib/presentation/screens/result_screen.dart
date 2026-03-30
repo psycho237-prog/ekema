@@ -49,7 +49,7 @@ class _ResultScreenState extends State<ResultScreen> {
                     return _buildStepCard(index, step);
                   }).toList(),
                   const SizedBox(height: 24),
-                  _buildDocumentSection(procedure),
+                  _buildDocumentSection(context, procedure),
                 ],
               ),
             ),
@@ -218,7 +218,8 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
-  Widget _buildDocumentSection(dynamic procedure) {
+  Widget _buildDocumentSection(BuildContext context, dynamic procedure) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
