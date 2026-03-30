@@ -111,7 +111,7 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 16),
               const Text(
                 'Bonjour 👋 Comment puis-je vous aider ?',
-                style: TextStyle(color: Colors.white, fontSize: 13, opacity: 0.85),
+                style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 13),
               ),
             ],
           ),
@@ -211,8 +211,8 @@ class HomeScreen extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Text(
+        children: [
+          const Text(
             '💡 Fonctionnement hors ligne',
             style: TextStyle(
               fontSize: 11,
@@ -220,14 +220,13 @@ class HomeScreen extends StatelessWidget {
               color: AppColors.primaryDark,
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
             'EKEMA fonctionne sans connexion internet. Toutes les procédures sont stockées localement sur votre appareil.',
             style: TextStyle(
               fontSize: 11,
               height: 1.5,
-              color: AppColors.primaryDark,
-              opacity: 0.8,
+              color: AppColors.primaryDark.withOpacity(0.8),
             ),
           ),
         ],

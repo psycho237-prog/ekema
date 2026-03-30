@@ -121,7 +121,7 @@ class _DocumentGeneratorScreenState extends State<DocumentGeneratorScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: const [
                       Text('Document généré avec succès', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-                      Text('Prêt à imprimer et signer', style: TextStyle(fontSize: 9, color: AppColors.primaryDark, opacity: 0.7)),
+                      Text('Prêt à imprimer et signer', style: TextStyle(fontSize: 9, color: AppColors.primaryDark.withOpacity(0.7))),
                     ],
                   ),
                 ),

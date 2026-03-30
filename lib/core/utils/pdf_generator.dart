@@ -67,7 +67,7 @@ class PdfGenerator {
               pw.SizedBox(height: 30),
 
               // Body
-              pw.Text(content, style: pw.TextStyle(font: font, fontSize: 12, lineHeight: 1.5)),
+              pw.Text(content, style: pw.TextStyle(font: font, fontSize: 12)),
               
               pw.SizedBox(height: 40),
               
