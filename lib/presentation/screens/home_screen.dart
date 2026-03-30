@@ -109,7 +109,7 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Bonjour 👋 Comment puis-je vous aider ?',
                 style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 13),
               ),
